@@ -1,0 +1,1 @@
+This is the first MVP of TCC AI Environment. It uses Azure AI, FastAPI, and a simple agent runtime with local tools.

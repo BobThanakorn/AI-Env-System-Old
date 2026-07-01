@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>T.C.C AI Environment Chat</title>
+
+  <link rel="stylesheet" href="/static/style.css?v=16" />
+</head>
+
+<body>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <img
+          src="/static/assets/tcc-logo.jpg?v=3"
+          alt="T.C.C Logo"
+          class="brand-logo"
+        />
+
+        <div class="brand-text">
+          <div class="logo">T.C.C AI Environment</div>
+          <div class="subtitle">Local Agent Runtime powered by Azure AI</div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        id="closeSidebarButton"
+        class="icon-btn sidebar-close"
+        aria-label="Close menu"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="status">
+      Server: <span id="serverStatus">Checking...</span>
+    </div>
+
+    <div class="status">
+      Mode: <span id="modeStatus">Chat</span>
+    </div>
+
+    <div class="status token-status" id="tokenStatus">
+      <div class="token-status-title">Token Usage (Session)</div>
+      <div class="token-row">Input: <span id="sessionInputTokens">0</span></div>
+      <div class="token-row">Output: <span id="sessionOutputTokens">0</span></div>
+      <div class="token-row">Total: <span id="sessionTotalTokens">0</span></div>
+      <div class="token-row token-last">Last request: <span id="lastRequestTokens">0</span></div>
+    </div>
+
+    <div class="workspace-panel">
+      <div class="workspace-panel-title">Workspace</div>
+      <div class="workspace-panel-meta" id="workspaceMeta">Loading...</div>
+      <ul class="workspace-file-list" id="workspaceFileList"></ul>
+    </div>
+
+    <div class="quick-actions">
+      <div class="quick-actions-title">Quick prompts</div>
+      <button type="button" data-prompt="Hello, what can you do?">
+        English Test
+      </button>
+
+      <button type="button" data-prompt="สวัสดี คุณทำอะไรได้บ้าง">
+        Thai Test
+      </button>
+
+      <button type="button" data-prompt="มีไฟล์อะไรใน workspace บ้าง">
+        List Workspace Files
+      </button>
+
+      <button type="button" data-prompt="อ่านไฟล์ project.txt แล้วสรุปให้หน่อย">
+        Read project.txt
+      </button>
+
+      <button type="button" data-prompt="cowork:อ่านไฟล์ project.txt แล้วสรุปเป็น bullet points ภาษาไทย">
+        Cowork: Summarize project.txt
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button
+          type="button"
+          id="toggleSidebarButton"
+          class="icon-btn menu-toggle"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div class="topbar-title" id="topbarTitle">Agent Chat</div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="mode-toggle" role="tablist" aria-label="Agent mode">
+          <button type="button" id="modeChatButton" class="mode-btn active" data-mode="chat">Chat</button>
+          <button type="button" id="modeCoworkButton" class="mode-btn" data-mode="cowork">Cowork</button>
+        </div>
+        <a href="/create-file" class="topbar-link">
+          <span class="topbar-link-icon" aria-hidden="true">📝</span>
+          <span class="topbar-link-text">สร้างไฟล์ใหม่</span>
+        </a>
+        <div class="model-badge">Azure AI / gpt-5.1-codex-mini</div>
+      </div>
+    </div>
+
+    <div class="chat-shell">
+      <div id="chat" class="chat">
+        <div class="chat-content">
+          <div class="message-row assistant message-enter">
+            <div class="message-stack">
+              <div class="meta">Agent</div>
+              <div class="message-bubble">
+                <div class="message-body">สวัสดีครับ ผมคือ AI Agent ตัวแรกของ T.C.C AI Environment ลองถามได้ทั้งภาษาไทยและอังกฤษ หรือให้ผมอ่านไฟล์ใน workspace ก็ได้<br><br>เปิดโหมด <strong>Cowork</strong> เพื่อมอบหมายงานหลายขั้นตอน — agent จะวางแผน ทำงาน และส่งมอบผลลัพธ์ให้เอง</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer" id="composer">
+        <div class="composer-inner">
+        <div class="attachment-bar" id="attachmentBar" hidden>
+          <div class="attachment-chip">
+            <span class="attachment-icon" aria-hidden="true">📎</span>
+            <span class="attachment-name" id="attachmentName"></span>
+            <span class="attachment-size" id="attachmentSize"></span>
+            <button
+              type="button"
+              id="removeFileButton"
+              class="attachment-remove"
+              title="Remove file"
+              aria-label="Remove attached file"
+            >×</button>
+          </div>
+        </div>
+
+        <div class="composer-row">
+          <input type="file" id="sessionFileInput" hidden />
+          <button
+            type="button"
+            id="attachFileButton"
+            class="attach-btn"
+            title="Attach file (max 1 file, 100 MB)"
+            aria-label="Attach file"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
+          <textarea
+            id="messageInput"
+            rows="1"
+            placeholder="Ask the agent..."
+          ></textarea>
+
+          <button type="button" id="sendButton" disabled>
+            <span class="send-label">Send</span>
+            <svg class="send-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="composer-hint" id="composerHint">
+          Enter ส่ง · Shift+Enter ขึ้นบรรทัดใหม่ · ลากไฟล์มาวางเพื่อแนบ
+        </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/app.js?v=16"></script>
+</body>
+</html>

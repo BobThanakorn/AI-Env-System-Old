@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>สร้างไฟล์ - T.C.C AI Environment</title>
+
+  <link rel="stylesheet" href="/static/style.css?v=7" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      background: #111827;
+      border-bottom: 1px solid #263241;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 20px;
+      flex: 1;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .header-buttons a,
+    .header-buttons button {
+      padding: 8px 16px;
+      background: #2563eb;
+      color: white;
+      border: 1px solid #1976D2;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .header-buttons a:hover,
+    .header-buttons button:hover {
+      background: #1d4ed8;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .create-file-container {
+      width: 100%;
+      max-width: 600px;
+      background: #111827;
+      border: 1px solid #263241;
+      border-radius: 8px;
+      padding: 30px;
+    }
+
+    .create-file-container h2 {
+      margin-top: 0;
+      margin-bottom: 25px;
+      color: #e5e7eb;
+      font-size: 22px;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #e5e7eb;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      background: #0f172a;
+      color: #e5e7eb;
+      border: 1px solid #263241;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-group textarea {
+      min-height: 250px;
+      resize: vertical;
+      font-family: monospace;
+    }
+
+    .form-group.full-width {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .form-group.full-width > div {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .form-buttons button {
+      flex: 1;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .form-buttons .submit {
+      background: #22c55e;
+      color: white;
+    }
+
+    .form-buttons .submit:hover {
+      background: #16a34a;
+    }
+
+    .form-buttons .submit:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+
+    .form-buttons .reset {
+      background: #6b7280;
+      color: white;
+    }
+
+    .form-buttons .reset:hover {
+      background: #4b5563;
+    }
+
+    .info-box {
+      background: #0f172a;
+      border-left: 4px solid #3b82f6;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .success-message {
+      background: #065f46;
+      border-left: 4px solid #22c55e;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      color: #22c55e;
+      display: none;
+    }
+
+    .error-message {
+      background: #7f1d1d;
+      border-left: 4px solid #f87171;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      color: #f87171;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>📝 สร้างไฟล์ใหม่</h1>
+    <div class="header-buttons">
+      <a href="/chat">💬 ไปยัง Chat</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="create-file-container">
+      <div id="successMessage" class="success-message"></div>
+      <div id="errorMessage" class="error-message"></div>
+
+      <div class="info-box">
+        💡 ไฟล์จะเก็บในโฟลเดอร์ <strong>workspace/notes/</strong>
+      </div>
+
+      <form id="createFileForm" onsubmit="submitForm(event)">
+        <div class="form-group">
+          <label for="fileName">ชื่อไฟล์ *</label>
+          <input
+            type="text"
+            id="fileName"
+            name="fileName"
+            placeholder="เช่น: summary.txt, report.md, สรุป.txt"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="fileContent">เนื้อหา *</label>
+          <textarea
+            id="fileContent"
+            name="fileContent"
+            placeholder="พิมพ์เนื้อหาไฟล์ที่นี่..."
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit" class="submit" id="submitBtn">
+            ✅ สร้างไฟล์
+          </button>
+          <button type="reset" class="reset">
+            🔄 ล้างข้อมูล
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("createFileForm");
+    const fileNameInput = document.getElementById("fileName");
+    const fileContentInput = document.getElementById("fileContent");
+    const submitBtn = document.getElementById("submitBtn");
+    const successMsg = document.getElementById("successMessage");
+    const errorMsg = document.getElementById("errorMessage");
+
+    function showSuccess(message) {
+      successMsg.textContent = "✅ " + message;
+      successMsg.style.display = "block";
+      errorMsg.style.display = "none";
+      setTimeout(() => {
+        successMsg.style.display = "none";
+      }, 3000);
+    }
+
+    function showError(message) {
+      errorMsg.textContent = "❌ " + message;
+      errorMsg.style.display = "block";
+      successMsg.style.display = "none";
+    }
+
+    function hideMessages() {
+      successMsg.style.display = "none";
+      errorMsg.style.display = "none";
+    }
+
+    async function submitForm(event) {
+      event.preventDefault();
+      hideMessages();
+
+      const fileName = fileNameInput.value.trim();
+      const fileContent = fileContentInput.value.trim();
+
+      if (!fileName) {
+        showError("กรุณาใส่ชื่อไฟล์");
+        fileNameInput.focus();
+        return;
+      }
+
+      if (!fileContent) {
+        showError("กรุณาใส่เนื้อหาไฟล์");
+        fileContentInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "⏳ กำลังสร้างไฟล์...";
+
+      try {
+        // เรียก endpoint โดยตรง (ไม่ผ่าน agent)
+        const response = await fetch("/files/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            filename: fileName,
+            content: fileContent
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.status === "error") {
+          showError(data.message || "เกิดข้อผิดพลาด");
+          return;
+        }
+
+        showSuccess(
+          `✅ ${data.message}`
+        );
+        form.reset();
+        fileNameInput.focus();
+      } catch (error) {
+        showError("เกิดข้อผิดพลาดในการสื่อสาร: " + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "✅ สร้างไฟล์";
+      }
+    }
+
+    // Auto-focus ที่ชื่อไฟล์ เมื่อโหลดหน้า
+    window.addEventListener("load", () => {
+      fileNameInput.focus();
+    });
+  </script>
+</body>
+</html>
